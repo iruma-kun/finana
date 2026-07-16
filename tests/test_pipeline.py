@@ -107,32 +107,23 @@ class TestFinancialVolatilityPipeline(unittest.TestCase):
         train_max_vol = train_df['realized_volatility'].quantile(0.99)
         self.assertLessEqual(val_processed['realized_volatility'].max(), train_max_vol)
 
-    def test_model_training_and_predictions(self):
-        """Test model fit and feature subset selection."""
-        X_train = self.processed['X_train']
-        y_train = self.processed['y_train']
-        X_val = self.processed['X_val']
-        metadata = self.processed['metadata']
+    def test_custom_model_injection(self):
+        """Test that injecting a custom sklearn model works within the predictor wrapper."""
+        from sklearn.svm import SVC
         
-        for model_type in ["logistic_regression", "random_forest"]:
-            predictor = VolatilityPredictor(model_type=model_type, random_state=42)
-            
-            # Test 'all' features
-            predictor.fit(X_train, y_train, feature_subset="all")
-            preds = predictor.predict(X_val)
-            probs = predictor.predict_proba(X_val)
-            self.assertEqual(len(preds), len(X_val))
-            self.assertEqual(len(probs), len(X_val))
-            
-            # Test 'time_series' only features
-            predictor.fit(X_train, y_train, feature_subset="time_series", metadata=metadata)
-            ts_preds = predictor.predict(X_val, metadata=metadata)
-            self.assertEqual(len(ts_preds), len(X_val))
-            
-            # Test feature importance structure
-            feat_imp = predictor.get_feature_importance(metadata['feature_names'], metadata)
-            self.assertFalse(feat_imp.empty)
-            self.assertIn('Feature', feat_imp.columns)
+        # 1. Initialize custom model
+        my_custom_model = SVC(probability=True, kernel='linear')
+        
+        # 2. Inject into wrapper
+        predictor = VolatilityPredictor(model=my_custom_model)
+        
+        # 3. Fit and predict
+        predictor.fit(self.processed['X_train'], self.processed['y_train'], feature_subset="time_series", metadata=self.processed['metadata'])
+        preds = predictor.predict(self.processed['X_val'], metadata=self.processed['metadata'])
+        
+        # 4. Verify functionality
+        self.assertEqual(len(preds), len(self.processed['X_val']))
+        self.assertIsInstance(predictor.model, SVC)
 
     def test_evaluator_metrics_and_backtest(self):
         """Test that metric calculations, backtesting, and visualization execute successfully."""

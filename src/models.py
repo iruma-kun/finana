@@ -9,37 +9,39 @@ class VolatilityPredictor:
     Trains and handles machine learning models to forecast next-day financial market volatility.
     Supports Time-Series only, Text only, and Combined multi-modal modeling configurations.
     """
-    def __init__(self, model_type: str = "random_forest", random_state: int = 42):
+    def __init__(self, model=None, model_type: str = "random_forest", random_state: int = 42):
         self.model_type = model_type
         self.random_state = random_state
-        self.model = None
         
-        # Initialize selected base model
-        if model_type == "logistic_regression":
-            self.model = LogisticRegression(
-                max_iter=1000, 
-                class_weight='balanced', 
-                random_state=random_state,
-                C=0.1  # Stronger L2 regularization to prevent overfitting on TF-IDF features
-            )
-        elif model_type == "random_forest":
-            self.model = RandomForestClassifier(
-                n_estimators=150,
-                max_depth=6,
-                min_samples_split=5,
-                class_weight='balanced',
-                random_state=random_state,
-                n_jobs=-1
-            )
-        elif model_type == "gradient_boosting":
-            self.model = GradientBoostingClassifier(
-                n_estimators=100,
-                learning_rate=0.05,
-                max_depth=4,
-                random_state=random_state
-            )
+        # If a custom model is provided, use it. Otherwise, initialize default.
+        if model is not None:
+            self.model = model
         else:
-            raise ValueError(f"Unknown model_type: {model_type}. Choose from 'logistic_regression', 'random_forest', 'gradient_boosting'.")
+            if model_type == "logistic_regression":
+                self.model = LogisticRegression(
+                    max_iter=1000, 
+                    class_weight='balanced', 
+                    random_state=random_state,
+                    C=0.1
+                )
+            elif model_type == "random_forest":
+                self.model = RandomForestClassifier(
+                    n_estimators=150,
+                    max_depth=6,
+                    min_samples_split=5,
+                    class_weight='balanced',
+                    random_state=random_state,
+                    n_jobs=-1
+                )
+            elif model_type == "gradient_boosting":
+                self.model = GradientBoostingClassifier(
+                    n_estimators=100,
+                    learning_rate=0.05,
+                    max_depth=4,
+                    random_state=random_state
+                )
+            else:
+                raise ValueError(f"Unknown model_type: {model_type}.")
 
     def fit(self, X_train: pd.DataFrame, y_train: np.ndarray, feature_subset: str = "all", metadata: Dict[str, Any] = None):
         """

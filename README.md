@@ -34,17 +34,32 @@ cd finana
 pip install -r requirements.txt
 ```
 
-## Usage
+## Extending with Custom Models
 
-Run the entire pipeline to train models and simulate a trading backtest:
+You can easily compare your own models using the existing pipeline by injecting any scikit-learn compatible estimator into the `VolatilityPredictor` wrapper.
 
-```bash
-# Using the default Random Forest model
-python3 src/main.py
+### Example: Using a Custom Model
 
-# Using Gradient Boosting
-python3 src/main.py --model gradient_boosting
+Create a new script or modify `main.py` to include your model:
+
+```python
+from sklearn.svm import SVC
+from src.models import VolatilityPredictor
+
+# 1. Initialize your custom model (must follow scikit-learn API)
+my_model = SVC(probability=True, kernel='linear')
+
+# 2. Inject it into our existing pipeline wrapper
+predictor = VolatilityPredictor(model=my_model)
+
+# 3. Use it within the existing pipeline
+predictor.fit(X_train, y_train, feature_subset="all", metadata=metadata)
 ```
+
+The wrapper automatically supports:
+- **`predict()`** and **`predict_proba()`** for inference.
+- **`get_feature_importance()`** (if your model provides `feature_importances_` or `coef_` attributes).
+- **Backtesting** integration with `VolatilityEvaluator`.
 
 ## Running Tests
 

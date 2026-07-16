@@ -56,104 +56,72 @@ class FinancialDataGenerator:
     def generate(self) -> pd.DataFrame:
         """
         Generates daily stock prices and synthetic news headlines.
+        Simulates volatility states using a Markov chain (0: Normal, 1: High).
         """
-        # Generate date range
+        # Generate date range, filtering for business days only
         date_list = []
         curr = self.start_date
         while curr <= self.end_date:
-            # Only stock trading days (Mon-Fri)
             if curr.weekday() < 5:
                 date_list.append(curr)
             curr += timedelta(days=1)
             
         n_days = len(date_list)
         
-        # Simulate base stock price (Geometric Brownian Motion)
+        # Simulate price path using Geometric Brownian Motion
         initial_price = 100.0
-        mu = 0.05 / 252  # daily drift
-        sigma_base = 0.15 / np.sqrt(252)  # daily base volatility
+        mu = 0.05 / 252  # annualized drift
+        sigma_base = 0.15 / np.sqrt(252)  # annualized volatility
         
         prices = [initial_price]
-        for i in range(1, n_days):
-            # Price change with drift and base volatility
+        for _ in range(1, n_days):
             ret = np.random.normal(mu, sigma_base)
             prices.append(prices[-1] * np.exp(ret))
             
         prices = np.array(prices)
-        
-        # Create stock DataFrame
         df = pd.DataFrame(index=date_list)
         df['close'] = prices
         df['open'] = prices * np.random.normal(1.0, 0.002, n_days)
         
-        # Volatility state: 0 = Low/Normal, 1 = High
-        # Volatility state transitions as a Markov chain with news influence
+        # Volatility state transition (Markov Process)
         vol_state = np.zeros(n_days)
         headlines = []
+        state = 0  # Initial state: Normal
         
-        state = 0  # initial state: normal
         for i in range(n_days):
-            # Decide news sentiment for today
-            # Headline content affects state transitions or state triggers volatility
-            headline_pool = []
-            
-            # Transition probability dependent on current state
-            if state == 0:
-                p_transition = 0.15  # 15% chance to go to high volatility
-            else:
-                p_transition = 0.40  # 40% chance to return to normal volatility
-                
+            # Transition logic
+            p_transition = 0.15 if state == 0 else 0.40
             if np.random.rand() < p_transition:
                 state = 1 - state
-                
             vol_state[i] = state
             
-            # Form headlines matching the volatility state
+            # Generate headlines based on volatility state
             num_headlines = np.random.randint(1, 4)
-            chosen_headlines = []
+            chosen = []
             for _ in range(num_headlines):
-                rand_val = np.random.rand()
-                if state == 1:
-                    # High volatility days: 70% chance of high vol headlines, 30% neutral
-                    if rand_val < 0.7:
-                        chosen_headlines.append(np.random.choice(self.high_vol_phrases))
-                    else:
-                        chosen_headlines.append(np.random.choice(self.neutral_phrases))
-                else:
-                    # Low volatility days: 70% chance of low vol headlines, 30% neutral
-                    if rand_val < 0.7:
-                        chosen_headlines.append(np.random.choice(self.low_vol_phrases))
-                    else:
-                        chosen_headlines.append(np.random.choice(self.neutral_phrases))
-                        
-            headlines.append(" | ".join(chosen_headlines))
+                if state == 1: # High volatility bias
+                    chosen.append(np.random.choice(self.high_vol_phrases) if np.random.rand() < 0.7 else np.random.choice(self.neutral_phrases))
+                else: # Low volatility bias
+                    chosen.append(np.random.choice(self.low_vol_phrases) if np.random.rand() < 0.7 else np.random.choice(self.neutral_phrases))
+            headlines.append(" | ".join(chosen))
             
         df['vol_state'] = vol_state
         df['headlines'] = headlines
         
-        # Calculate high/low matching the volatility state
-        # High volatility days have larger high-low spreads
-        spread_multiplier = np.where(df['vol_state'] == 1, np.random.uniform(2.5, 5.0, n_days), np.random.uniform(1.0, 2.0, n_days))
-        daily_vol = sigma_base * spread_multiplier
+        # Create High/Low spread based on state
+        spread_mult = np.where(df['vol_state'] == 1, np.random.uniform(2.5, 5.0, n_days), np.random.uniform(1.0, 2.0, n_days))
+        daily_vol = sigma_base * spread_mult
         
         df['high'] = df[['open', 'close']].max(axis=1) * (1.0 + np.abs(np.random.normal(daily_vol, daily_vol * 0.1)))
         df['low'] = df[['open', 'close']].min(axis=1) * (1.0 - np.abs(np.random.normal(daily_vol, daily_vol * 0.1)))
         df['volume'] = np.random.randint(50000, 2000000, n_days) * (1.0 + df['vol_state'] * np.random.uniform(0.5, 1.5, n_days))
         
-        # Target variable: High Volatility TOMORROW (1 if daily range > median daily range, 0 otherwise)
-        # Realized volatility today can be measured by Parkingson Volatility or simple Normalized Range: (High - Low) / Close
+        # Target: Realized volatility (Parkinson-like) and binary class for tomorrow
         df['realized_volatility'] = (df['high'] - df['low']) / df['close']
-        
-        # Shift target to represent TOMORROW's volatility class (binary classification)
-        # We classify next day's realized volatility into High (1) or Low (0) based on median threshold
         median_vol = df['realized_volatility'].median()
         df['tomorrow_vol_class'] = (df['realized_volatility'].shift(-1) > median_vol).astype(int)
         
-        # Drop the last row since tomorrow_vol_class is NaN
-        df = df.dropna()
-        
-        df = df.reset_index().rename(columns={'index': 'date'})
-        return df
+        return df.dropna().reset_index().rename(columns={'index': 'date'})
 
 if __name__ == "__main__":
     generator = FinancialDataGenerator()
