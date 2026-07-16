@@ -70,23 +70,30 @@ class TestFinancialVolatilityPipeline(unittest.TestCase):
         """Test that outlier bounds are computed on train and applied correctly without leaking."""
         preprocessor = FinancialPreprocessor()
         
-        # Construct synthetic dataframe with extreme outlier
+        # Handle outlier in 'high' to ensure volatility variation
+        # Construct synthetic dataframe with sufficient variety to avoid NaN
+        np.random.seed(42)
         test_df = pd.DataFrame({
-            'date': pd.date_range(start="2024-01-01", periods=10, freq="D"),
-            'close': [100.0] * 10,
-            'high': [101.0] * 9 + [200.0], # Extreme outlier at the end
-            'low': [99.0] * 10,
-            'tomorrow_vol_class': [0] * 10,
-            'headlines': ["normal headline"] * 10
+            'date': pd.date_range(start="2024-01-01", periods=50, freq="D"),
+            'close': np.random.uniform(90, 110, 50),
+            'high': np.random.uniform(105, 120, 50),
+            'low': np.random.uniform(80, 95, 50),
+            'volume': np.random.randint(1000, 5000, 50),
+            'tomorrow_vol_class': np.random.randint(0, 2, 50),
+            'headlines': ["normal headline"] * 50
         })
+        # Add extreme outlier
+        test_df.iloc[45:, 2] = 500.0 
+        
+        test_df['realized_volatility'] = (test_df['high'] - test_df['low']) / test_df['close']
         
         # Engineer features
         df_engineered = preprocessor.engineer_time_series_features(test_df)
         df_engineered['cleaned_headlines'] = df_engineered['headlines']
         
-        # Separate train (first 6 rows) and validation (last 2 rows)
-        train_df = df_engineered.iloc[:6].copy()
-        val_df = df_engineered.iloc[6:].copy()
+        # Separate train (rows 10-30) and validation (rows 35-45)
+        train_df = df_engineered.iloc[10:30].copy()
+        val_df = df_engineered.iloc[35:45].copy()
         
         # Volatility index check before clipping
         self.assertIn('realized_volatility', preprocessor.numeric_features)
