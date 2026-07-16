@@ -89,7 +89,7 @@ class TestFinancialVolatilityPipeline(unittest.TestCase):
         test_df['realized_volatility'] = (test_df['high'] - test_df['low']) / test_df['close']
         
         # Engineer features
-        df_engineered = preprocessor.engineer_time_series_features(test_df)
+        df_engineered = preprocessor.engineer_features(test_df)
         df_engineered['cleaned_headlines'] = df_engineered['headlines']
         
         # Separate train (rows 10-30) and validation (rows 35-45)
