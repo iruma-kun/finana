@@ -1,13 +1,14 @@
 import unittest
 import numpy as np
 import pandas as pd
-from datetime import datetime
-
 # Import classes to test
 import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
+import numpy as np
+import pandas as pd
 from data_generator import FinancialDataGenerator
 from preprocessor import FinancialPreprocessor
 from models import VolatilityPredictor
@@ -99,7 +100,7 @@ class TestFinancialVolatilityPipeline(unittest.TestCase):
         self.assertIn('realized_volatility', preprocessor.numeric_features)
         
         # Fit outlier bounds on training only
-        train_processed = preprocessor.handle_outliers(train_df, fit=True)
+        preprocessor.handle_outliers(train_df, fit=True)
         val_processed = preprocessor.handle_outliers(val_df, fit=False)
         
         # Ensure validation outlier was capped based on training boundaries
