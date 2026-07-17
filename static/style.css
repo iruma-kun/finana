@@ -1,0 +1,347 @@
+:root {
+    --bg-color: #212529; /* Dark charcoal */
+    --card-bg: #2b3035; /* Slightly lighter charcoal */
+    --text-color-primary: #e0e0e0; /* Off-white for main text */
+    --text-color-secondary: #adb5bd; /* Muted gray for secondary text */
+    --border-color: #495057; /* Darker gray for subtle borders */
+    --accent-color-light: #6c757d; /* Soft accent for highlights */
+    --accent-color-dark: #343a40; /* Dark accent for backgrounds */
+    
+    --status-low: #82c91e; /* Calming green */
+    --status-high: #fa5252; /* Alerting red */
+    
+    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Base Styles */
+body {
+    font-family: var(--font-inter);
+    background-color: var(--bg-color);
+    color: var(--text-color-primary);
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Container & Layout */
+.container {
+    max-width: 900px; /* Slightly wider for more spacious feel */
+    width: 100%;
+    margin: auto;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* Increased spacing */
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 3.8rem; /* Larger and impactful */
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-color-primary);
+    letter-spacing: -0.05em; /* Tighter for modern look */
+}
+
+.subtitle {
+    font-size: 1.3rem;
+    color: var(--text-color-secondary);
+    margin-top: 10px;
+    font-weight: 400;
+}
+
+/* Card Styles */
+.card {
+    background: var(--card-bg);
+    border-radius: 12px; /* Softer corners */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Deeper, softer shadow */
+    padding: 35px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content within cards */
+}
+
+.card-header {
+    width: 100%; /* Ensure header stretches */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.card h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color-primary);
+}
+
+.date-badge {
+    font-size: 0.95rem;
+    color: var(--text-color-secondary);
+    background: var(--accent-color-dark);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+}
+
+/* Volatility Indicator */
+.indicator-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0;
+    width: 100%;
+}
+
+.risk-indicator {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 2.5rem; /* Larger status text */
+    transition: all 0.6s ease-in-out;
+    border: 12px solid var(--border-color); /* Thicker, defined border */
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.7); /* Enhanced text visibility */
+    background-color: var(--accent-color-dark); /* Solid background */
+    color: var(--text-color-primary);
+}
+
+.risk-indicator strong {
+    display: block; /* Ensure it takes its own line */
+    margin-bottom: 5px;
+}
+
+.risk-indicator span {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--text-color-secondary);
+}
+
+.risk-indicator.low {
+    border-color: var(--status-low);
+    box-shadow: 0 0 60px -15px var(--status-low);
+}
+
+.risk-indicator.high {
+    border-color: var(--status-high);
+    box-shadow: 0 0 60px -15px var(--status-high);
+}
+
+/* Metrics */
+.metrics {
+    width: 100%; /* Ensure metrics span full width */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsive grid */
+    gap: 25px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 30px;
+    margin-top: 20px; /* Space from indicator */
+}
+
+.metric {
+    text-align: center;
+    background-color: var(--accent-color-dark); /* Subtle background for metrics */
+    padding: 15px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color-primary);
+}
+
+/* Market Selection & Search */
+.market-controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 30px; /* Space before the next card */
+}
+
+.market-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.market-btn {
+    background-color: var(--accent-color-dark);
+    color: var(--text-color-secondary);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.market-btn:hover, .market-btn.active {
+    background-color: var(--accent-color-light);
+    color: var(--text-color-primary);
+    border-color: var(--status-low); /* Highlight active/hover */
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 400px; /* Constrain search width */
+    position: relative;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 12px 40px 12px 15px; /* Space for icon */
+    border-radius: 25px;
+    border: 1px solid var(--border-color);
+    background-color: var(--accent-color-dark);
+    color: var(--text-color-primary);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.search-bar input::placeholder {
+    color: var(--text-color-secondary);
+}
+
+.search-bar input:focus {
+    border-color: var(--primary-color);
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-color-secondary);
+}
+
+/* Headlines */
+.headlines-card {
+    align-items: flex-start; /* Align headline card content to start */
+}
+
+.headlines-card .card-header {
+    margin-bottom: 20px;
+}
+
+.headline-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.headline-list li {
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 1rem;
+    color: var(--text-color-secondary);
+}
+
+.headline-list li:last-child {
+    border-bottom: none;
+}
+
+.headline-list li.error {
+    color: var(--status-high);
+    background-color: #4a2d2d;
+    border-radius: 8px;
+    margin-top: 16px;
+    padding: 12px;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    margin-top: 40px;
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: var(--text-color-primary);
+    text-decoration: underline;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+        align-items: flex-start; /* Align to top on small screens */
+        min-height: auto;
+    }
+    .container {
+        padding: 15px;
+        gap: 20px;
+    }
+    header h1 {
+        font-size: 3rem;
+    }
+    .subtitle {
+        font-size: 1.1rem;
+    }
+    .card {
+        padding: 25px;
+    }
+    .card h2 {
+        font-size: 1.4rem;
+    }
+    .risk-indicator {
+        width: 200px;
+        height: 200px;
+        font-size: 2rem;
+    }
+    .metrics {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding-top: 25px;
+    }
+    .value {
+        font-size: 1.6rem;
+    }
+    .market-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .market-btn {
+        width: 100%;
+    }
+}

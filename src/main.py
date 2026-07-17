@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import toml
 import os
+import joblib
 from data_generator import FinancialDataGenerator
 from preprocessor import FinancialPreprocessor
 from models import VolatilityPredictor
@@ -30,10 +31,13 @@ def run_pipeline():
                         help="Base model to train.")
     parser.add_argument("--cloud", action="store_true", default=config["cloud_settings"].get("enabled", False),
                         help="Enable cloud sentiment features.")
+    parser.add_argument("--save-model", type=str, default=None,
+                        help="Path to save the best trained model (e.g., models/best_model.pkl).")
     args = parser.parse_args()
 
     model_type = args.model
     use_cloud = args.cloud
+    save_model_path = args.save_model
     
     print("=" * 70)
     print(f"FINANCIAL MARKET VOLATILITY PREDICTION PIPELINE")
@@ -111,6 +115,19 @@ def run_pipeline():
     best_predictor = trained_predictors["all"]
     best_test_probs = best_predictor.predict_proba(X_test, metadata=metadata)
     VolatilityEvaluator.print_ascii_roc_curve(y_test, best_test_probs)
+
+    if save_model_path:
+        print(f"\n[Step 7] Saving best model and preprocessor...")
+        os.makedirs(os.path.dirname(save_model_path), exist_ok=True)
+        
+        # Save both the predictor and the fitted preprocessor
+        save_data = {
+            'predictor': best_predictor,
+            'preprocessor': preprocessor,
+            'metadata': metadata
+        }
+        joblib.dump(save_data, save_model_path)
+        print(f"  Exported to {save_model_path}")
     
     print("\n[Step 6] Risk Management Backtest...")
     best_test_preds = (best_test_probs > 0.5).astype(int)

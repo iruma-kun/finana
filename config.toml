@@ -13,3 +13,10 @@ cache_file = "data/llm_features.csv"
 [model_settings]
 # Options: random_forest, gradient_boosting, logistic_regression, or 'custom'
 model_type = "random_forest"
+
+[live_settings]
+# Path where the trained model is saved for the web dashboard
+model_path = "models/best_volatility_predictor.pkl"
+# Host and Port for the local Flask server
+host = "127.0.0.1"
+port = 5000
