@@ -1,1 +1,182 @@
-<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Finana - Market Volatility Forecast</title>\n    <link rel=\"stylesheet\" href=\"{{ url_for(\'static\', filename=\'style.css\') }}\">\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap\" rel=\"stylesheet\">\n    <link href=\"https://fonts.googleapis.com/icon?family=Material+Icons\" rel=\"stylesheet\"> <!-- For search icon -->\n</head>\n<body>\n    <div class=\"container\">\n        <header>\n            <h1>Finana</h1>\n            <p class=\"subtitle\">Next-Day Market Volatility Risk Dashboard</p>\n        </header>\n\n        <main>\n            <!-- Market Selection and Search -->\n            <section class=\"card market-controls\">\n                <h2>Select Market</h2>\n                <div class=\"market-buttons\" id=\"marketButtons\">\n                    <!-- Buttons will be dynamically loaded here by JS -->\n                    <button class=\"market-btn active\" data-market=\"SPX\">S&P 500</button>\n                    <button class=\"market-btn\" data-market=\"NDX\">NASDAQ</button>\n                    <button class=\"market-btn\" data-market=\"DJI\">Dow Jones</button>\n                    <button class=\"market-btn\" data-market=\"DAX\">DAX</button>\n                </div>\n                <div class=\"search-bar\">\n                    <input type=\"text\" id=\"marketSearch\" placeholder=\"Search specific stock (e.g., AAPL)\">\n                    <span class=\"material-icons search-icon\">search</span>\n                </div>\n            </section>\n\n            <!-- Volatility Status Card -->\n            <section class=\"card status-card\" id=\"statusCard\">\n                <div class=\"card-header\">\n                    <h2 id=\"currentMarketDisplay\">Global Market Overview</h2>\n                    <span id=\"currentDate\" class=\"date-badge\"></span>\n                </div>\n                \n                <div class=\"indicator-container\">\n                    <div id=\"riskIndicator\" class=\"risk-indicator low\">\n                        <strong id=\"volatilityStatus\">NORMAL</strong>\n                        <span>Expected Tomorrow</span>\n                    </div>\n                </div>\n\n                <div class=\"metrics\">\n                    <div class=\"metric\">\n                        <span class=\"label\">Next-Day Probability</span>\n                        <span id=\"probability\" class=\"value\">--%</span>\n                    </div>\n                    <div class=\"metric\">\n                        <span class=\"label\">Confidence Score</span>\n                        <span id=\"confidence\" class=\"value\">--</span>\n                    </div>\n                </div>\n            </section>\n\n            <!-- Key Risk Headlines Card -->\n            <section class=\"card headlines-card\">\n                <h2>Key Risk Headlines</h2>\n                <ul id=\"headlineList\" class=\"headline-list\">\n                    <li>Analyzing current market headlines...</li>\n                </ul>\n            </section>\n        </main>\n\n        <footer>\n            <p>Built with Finana NLP & Time-Series Pipeline | <a href=\"https://github.com/your-username/finana\" target=\"_blank\">GitHub Repository</a></p>\n        </footer>\n    </div>\n\n    <script>\n        const currentDateElement = document.getElementById(\'currentDate\');\n        const volatilityStatusElement = document.getElementById(\'volatilityStatus\');\n        const probabilityElement = document.getElementById(\'probability\');\n        const confidenceElement = document.getElementById(\'confidence\');\n        const riskIndicatorElement = document.getElementById(\'riskIndicator\');\n        const headlineListElement = document.getElementById(\'headlineList\');\n        const marketButtonsContainer = document.getElementById(\'marketButtons\');\n        const currentMarketDisplay = document.getElementById(\'currentMarketDisplay\');\n        const marketSearchInput = document.getElementById(\'marketSearch\');\n\n        let selectedMarket = \'SPX\'; // Default selected market\n\n        function updateDate() {\n            currentDateElement.innerText = new Date().toLocaleDateString(\'en-US\', {\n                weekday: \'long\', year: \'numeric\', month: \'long\', day: \'numeric\'\n            });\n        }\n\n        async function fetchForecast(market = selectedMarket) {\n            // Update the display for which market is currently being shown\n            currentMarketDisplay.innerText = market === \'SPX\' ? \'S&P 500\' : market;\n            // Placeholder for actual API call, will need to pass \'market\' to backend\n            const url = \`/api/volatility?market=\${market}\`;\n            \n            try {\n                // Reset UI state while fetching\n                volatilityStatusElement.innerText = \'FETCHING...\';\n                riskIndicatorElement.className = \'risk-indicator\';\n                probabilityElement.innerText = \'--%\';\n                confidenceElement.innerText = \'--\';\n                headlineListElement.innerHTML = \'<li>Updating headlines...</li>\';\n\n                const response = await fetch(url);\n                const data = await response.json();\n                \n                if (data.status === \'success\') {\n                    const prob = data.next_day_prediction_prob;\n                    const isHigh = data.next_day_prediction_class === 1;\n                    \n                    probabilityElement.innerText = (prob * 100).toFixed(1) + \'%\';\n                    confidenceElement.innerText = (Math.abs(prob - 0.5) * 2 * 10).toFixed(1) + \'/10\';\n                    \n                    const statusText = isHigh ? \'HIGH RISK\' : \'NORMAL\';\n                    volatilityStatusElement.innerText = statusText;\n                    riskIndicatorElement.className = \'risk-indicator \' + (isHigh ? \'high\' : \'low\');\n                    \n                    headlineListElement.innerHTML = \'\';\n                    if (data.used_headlines && data.used_headlines.length > 0) {\n                        data.used_headlines.forEach(headline => {\n                            const li = document.createElement(\'li\');\n                            li.innerText = headline;\n                            headlineListElement.appendChild(li);\n                        });\n                    } else {\n                        headlineListElement.innerHTML = \'<li>No specific headlines available for this market.</li>\';\n                    }\n                } else {\n                    volatilityStatusElement.innerText = \'ERROR\';\n                    riskIndicatorElement.className = \'risk-indicator\'; // Neutral state\n                    headlineListElement.innerHTML = `<li class=\"error\">${data.message}</li>`;\n                }\n            } catch (error) {\n                console.error(\'Error fetching prediction:\', error);\n                volatilityStatusElement.innerText = \'OFFLINE\';\n                riskIndicatorElement.className = \'risk-indicator\'; // Neutral state\n                headlineListElement.innerHTML = \'<li class=\"error\">Could not connect to the server.</li>\';\n            }\n        }\n\n        // Event Listeners\n        marketButtonsContainer.addEventListener(\'click\', (event) => {\n            const target = event.target;\n            if (target.classList.contains(\'market-btn\')) {\n                // Remove active class from all buttons\n                document.querySelectorAll(\'.market-btn\').forEach(btn => btn.classList.remove(\'active\'));\n                // Add active class to the clicked button\n                target.classList.add(\'active\');\n                selectedMarket = target.dataset.market; // Update selected market\n                fetchForecast(selectedMarket); // Fetch new forecast\n            }\n        });\n\n        marketSearchInput.addEventListener(\'keypress\', (event) => {\n            if (event.key === \'Enter\') {\n                const searchTerm = marketSearchInput.value.trim().toUpperCase();\n                if (searchTerm) {\n                    // Deselect any active market button\n                    document.querySelectorAll(\'.market-btn\').forEach(btn => btn.classList.remove(\'active\'));\n                    selectedMarket = searchTerm;\n                    fetchForecast(selectedMarket);\n                }\n            }\n        });\n\n        // Initial load\n        updateDate();\n        fetchForecast();\n        // Update every 30 seconds\n        setInterval(fetchForecast, 30000);\n        setInterval(updateDate, 60000); // Update date less frequently\n    </script>\n</body>\n</html>\n
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finana - Market Volatility Forecast</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Finana</h1>
+            <p class="subtitle">Next-Day Market Volatility Risk Dashboard</p>
+        </header>
+
+        <main>
+            <!-- Market Selection and Search -->
+            <section class="card market-controls">
+                <h2>Select Market</h2>
+                <div class="market-buttons" id="marketButtons">
+                    <!-- Buttons will be dynamically loaded here by JS -->
+                    <button class="market-btn active" data-market="SPX">S&P 500</button>
+                    <button class="market-btn" data-market="NDX">NASDAQ</button>
+                    <button class="market-btn" data-market="DJI">Dow Jones</button>
+                    <button class="market-btn" data-market="DAX">DAX</button>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="marketSearch" placeholder="Search specific stock (e.g., AAPL)">
+                    <span class="material-icons search-icon">search</span>
+                </div>
+            </section>
+
+            <!-- Volatility Status Card -->
+            <section class="card status-card" id="statusCard">
+                <div class="card-header">
+                    <h2 id="currentMarketDisplay">S&P 500</h2>
+                    <div class="header-right">
+                        <span class="live-pulse"></span>
+                        <span id="currentDate" class="date-badge"></span>
+                    </div>
+                </div>
+
+                <div class="indicator-container">
+                    <div id="riskIndicator" class="risk-indicator low">
+                        <strong id="volatilityStatus">NORMAL</strong>
+                        <span>Expected Tomorrow</span>
+                    </div>
+                </div>
+
+                <div class="metrics">
+                    <div class="metric">
+                        <span class="label">Next-Day Probability</span>
+                        <span id="probability" class="value">--%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="label">Confidence Score</span>
+                        <span id="confidence" class="value">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Risk Headlines Card -->
+            <section class="card headlines-card">
+                <h2>Key Risk Headlines</h2>
+                <ul id="headlineList" class="headline-list">
+                    <li>Analyzing current market headlines...</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>Finana Dashboard | Minimalist Market Risk Forecasting</p>
+            <p><a href="https://github.com/aritra/finana" target="_blank">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const currentDateElement = document.getElementById('currentDate');
+        const volatilityStatusElement = document.getElementById('volatilityStatus');
+        const probabilityElement = document.getElementById('probability');
+        const confidenceElement = document.getElementById('confidence');
+        const riskIndicatorElement = document.getElementById('riskIndicator');
+        const headlineListElement = document.getElementById('headlineList');
+        const marketButtonsContainer = document.getElementById('marketButtons');
+        const currentMarketDisplay = document.getElementById('currentMarketDisplay');
+        const marketSearchInput = document.getElementById('marketSearch');
+
+        let selectedMarket = 'SPX'; // Default selected market
+
+        function updateDate() {
+            currentDateElement.innerText = new Date().toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
+
+        async function fetchForecast(market = selectedMarket) {
+            // Update the display for which market is currently being shown
+            currentMarketDisplay.innerText = market === 'SPX' ? 'S&P 500' : market;
+            // Placeholder for actual API call, will need to pass 'market' to backend
+            const url = `/api/volatility?market=${market}`;
+
+            try {
+                // Reset UI state while fetching
+                volatilityStatusElement.innerText = 'FETCHING...';
+                riskIndicatorElement.className = 'risk-indicator';
+                probabilityElement.innerText = '--%';
+                confidenceElement.innerText = '--';
+                headlineListElement.innerHTML = '<li>Updating headlines...</li>';
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const prob = data.next_day_prediction_prob;
+                    const isHigh = data.next_day_prediction_class === 1;
+
+                    probabilityElement.innerText = (prob * 100).toFixed(1) + '%';
+                    confidenceElement.innerText = (Math.abs(prob - 0.5) * 2 * 10).toFixed(1) + '/10';
+
+                    const statusText = isHigh ? 'HIGH RISK' : 'NORMAL';
+                    volatilityStatusElement.innerText = statusText;
+                    riskIndicatorElement.className = 'risk-indicator ' + (isHigh ? 'high' : 'low');
+
+                    headlineListElement.innerHTML = '';
+                    if (data.used_headlines && data.used_headlines.length > 0) {
+                        data.used_headlines.forEach(headline => {
+                            const li = document.createElement('li');
+                            li.innerText = headline;
+                            headlineListElement.appendChild(li);
+                        });
+                    } else {
+                        headlineListElement.innerHTML = '<li>No specific headlines available for this market.</li>';
+                    }
+                } else {
+                    volatilityStatusElement.innerText = 'ERROR';
+                    riskIndicatorElement.className = 'risk-indicator'; // Neutral state
+                    headlineListElement.innerHTML = `<li class="error">${data.message}</li>`;
+                }
+            } catch (error) {
+                console.error('Error fetching prediction:', error);
+                volatilityStatusElement.innerText = 'OFFLINE';
+                riskIndicatorElement.className = 'risk-indicator'; // Neutral state
+                headlineListElement.innerHTML = '<li class="error">Could not connect to the server.</li>';
+            }
+        }
+
+        // Event Listeners
+        marketButtonsContainer.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('market-btn')) {
+                // Remove active class from all buttons
+                document.querySelectorAll('.market-btn').forEach(btn => btn.classList.remove('active'));
+                // Add active class to the clicked button
+                target.classList.add('active');
+                selectedMarket = target.dataset.market; // Update selected market
+                fetchForecast(selectedMarket); // Fetch new forecast
+            }
+        });
+
+        marketSearchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                const searchTerm = marketSearchInput.value.trim().toUpperCase();
+                if (searchTerm) {
+                    // Deselect any active market button
+                    document.querySelectorAll('.market-btn').forEach(btn => btn.classList.remove('active'));
+                    selectedMarket = searchTerm;
+                    fetchForecast(selectedMarket);
+                }
+            }
+        });
+
+        // Initial load
+        updateDate();
+        fetchForecast();
+        // Update every 30 seconds
+        setInterval(fetchForecast, 30000);
+        setInterval(updateDate, 60000); // Update date less frequently
+    </script>
+</body>
+</html>
