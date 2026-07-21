@@ -1,6 +1,6 @@
 # Finana: Financial Volatility Forecasting
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
-![License](https://img.shields.io/badge-url.svg)  *(MIT` with actual URL](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge-url.svg)
 ![Flask](https://img.shields.io/badge/framework-flask-000000.svg)
 ![scikit-learn](https://img.shields.io/badge/library-scikit_learn-F7931E.svg)
 ![GitHub issues](https://img.shields.io/github/issues/iruma-kun/finana)
