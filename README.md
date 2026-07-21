@@ -22,7 +22,7 @@ This project features an interactive **live dashboard** designed with a **Zen / 
 
 ## Installation
 ```bash
-git clone https://github.com/your-username/finana.git # Replace with your repo URL
+git clone https://github.com/iruma-kun/finana.git
 cd finana
 python3 -m venv venv
 source venv/bin/activate
