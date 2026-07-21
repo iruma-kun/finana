@@ -17,10 +17,25 @@ def load_config():
             return toml.load("config.toml")
         except Exception as e:
             print(f"Error loading config.toml: {e}. Using defaults.")
-    return {
-        "cloud_settings": {"enabled": False, "cache_file": "data/llm_features.csv"}, 
-        "model_settings": {"model_type": "random_forest"}
+    loaded_config = {}
+    if os.path.exists("config.toml"):
+        try:
+            loaded_config = toml.load("config.toml")
+        except Exception as e:
+            print(f"Error loading config.toml: {e}. Using defaults for missing sections.")
+            
+    # Merge loaded config with defaults to ensure all keys exist
+    default_config = {
+        "cloud_settings": {"enabled": False, "cache_file": "data/llm_features.csv", "provider": "openai"},
+        "model_settings": {"model_type": "random_forest"},
+        "live_settings": {"model_path": "models/best_volatility_predictor.pkl", "host": "127.0.0.1", "port": 5000}
     }
+    
+    config = {}
+    for section, defaults in default_config.items():
+        config[section] = {**defaults, **loaded_config.get(section, {})}
+    
+    return config
 
 def run_pipeline():
     config = load_config()
@@ -29,7 +44,7 @@ def run_pipeline():
     parser = argparse.ArgumentParser(description="Financial Volatility Prediction.")
     parser.add_argument("--model", type=str, default=config["model_settings"].get("model_type", "random_forest"),
                         help="Base model to train.")
-    parser.add_argument("--cloud", action="store_true", default=config["cloud_settings"].get("enabled", False),
+    parser.add_argument("--cloud", action="store_true", default=config.get("cloud_settings", {}).get("enabled", False),
                         help="Enable cloud sentiment features.")
     parser.add_argument("--save-model", type=str, default=None,
                         help="Path to save the best trained model (e.g., models/best_model.pkl).")

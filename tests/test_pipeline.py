@@ -9,6 +9,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
 
 import numpy as np
 import pandas as pd
+from sklearn.svm import SVC
+from sklearn.calibration import CalibratedClassifierCV
+
 from data_generator import FinancialDataGenerator
 from preprocessor import FinancialPreprocessor
 from models import VolatilityPredictor
@@ -110,9 +113,11 @@ class TestFinancialVolatilityPipeline(unittest.TestCase):
     def test_custom_model_injection(self):
         """Test that injecting a custom sklearn model works within the predictor wrapper."""
         from sklearn.svm import SVC
+        from sklearn.calibration import CalibratedClassifierCV
         
         # 1. Initialize custom model
-        my_custom_model = SVC(probability=True, kernel='linear')
+        base_svc = SVC(kernel='linear')
+        my_custom_model = CalibratedClassifierCV(base_svc, ensemble=False)
         
         # 2. Inject into wrapper
         predictor = VolatilityPredictor(model=my_custom_model)
@@ -123,7 +128,7 @@ class TestFinancialVolatilityPipeline(unittest.TestCase):
         
         # 4. Verify functionality
         self.assertEqual(len(preds), len(self.processed['X_val']))
-        self.assertIsInstance(predictor.model, SVC)
+        self.assertIsInstance(predictor.model, CalibratedClassifierCV)
 
     def test_evaluator_metrics_and_backtest(self):
         """Test that metric calculations, backtesting, and visualization execute successfully."""

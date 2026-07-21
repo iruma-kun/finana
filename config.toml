@@ -1,14 +1,4 @@
 # Configuration for Finana Volatility Pipeline
-# Update this file to enable Cloud LLM features or specify custom models.
-
-[cloud_settings]
-# Set to true to use cloud sentiment features
-enabled = false
-# Options: openai, anthropic, google
-provider = "openai"
-api_key = "your_api_key_here"
-# Cache file to save API results
-cache_file = "data/llm_features.csv"
 
 [model_settings]
 # Options: random_forest, gradient_boosting, logistic_regression, or 'custom'
@@ -19,4 +9,4 @@ model_type = "random_forest"
 model_path = "models/best_volatility_predictor.pkl"
 # Host and Port for the local Flask server
 host = "127.0.0.1"
-port = 5000
+port = 5001

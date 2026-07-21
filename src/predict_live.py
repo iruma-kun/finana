@@ -17,11 +17,25 @@ def load_config():
             return toml.load("config.toml")
         except Exception as e:
             print(f"Error loading config.toml: {e}. Using defaults.")
-    return {
-        "cloud_settings": {"enabled": False, "cache_file": "data/llm_features.csv"},
+    loaded_config = {}
+    if os.path.exists("config.toml"):
+        try:
+            loaded_config = toml.load("config.toml")
+        except Exception as e:
+            print(f"Error loading config.toml: {e}. Using defaults for missing sections.")
+
+    # Merge loaded config with defaults to ensure all keys exist
+    default_config = {
+        "cloud_settings": {"enabled": False, "cache_file": "data/llm_features.csv", "provider": "openai"},
         "model_settings": {"model_type": "random_forest"},
-        "live_settings": {"model_path": "models/best_volatility_predictor.pkl"}
+        "live_settings": {"model_path": "models/best_volatility_predictor.pkl", "host": "127.0.0.1", "port": 5000}
     }
+
+    config = {}
+    for section, defaults in default_config.items():
+        config[section] = {**defaults, **loaded_config.get(section, {})}
+
+    return config
 
 def get_next_day_prediction(model_path: str = None, market: str = "Global") -> tuple[float, int]:
     """
