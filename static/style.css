@@ -252,10 +252,6 @@ header h1 {
     align-items: flex-start; /* Align headline card content to start */
 }
 
-.headlines-card .card-header {
-    margin-bottom: 20px;
-}
-
 .headline-list {
     list-style: none;
     padding: 0;
@@ -305,7 +301,7 @@ footer a:hover {
 @media (max-width: 768px) {
     body {
         padding: 15px;
-        align-items: flex-start; /* Align to top on small screens */
+        align-items: center; /* Center vertically on small screens */
         min-height: auto;
     }
     .container {

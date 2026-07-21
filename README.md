@@ -6,6 +6,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/iruma-kun/finana?style=social)
 
 
+
 A professional-grade machine learning pipeline for predicting next-day financial market volatility by combining quantitative time-series data with news sentiment analysis.
 
 This project features an interactive **live dashboard** designed with a **Zen / Japandi dark aesthetic**—providing a clean, minimalist, and clutter-free interface inspired by the Zen Browser.
@@ -29,11 +30,18 @@ pip install -r requirements.txt
 ```
 
 ## Architecture
-Data flows through the following stages:
-1. Data Generator → Preprocessor → Temporal Split
-2. Temporal Split branches to:
-   - Model Training → Saved Model & Preprocessor → Predict Live Server → Web UI (Frontend)
-   - Validation/Test Set → Model Evaluation → Risk Management Backtest → Risk Management Backtest → Performance Metrics
+```mermaid
+graph TD
+    A[Data Generator] --> B[Preprocessor]
+    B --> C{Temporal Split}
+    C -->|Training Set| D[Model Training]
+    D --> E[Saved Model & Preprocessor]
+    E --> F[Predict Live Server]
+    F --> G[Web UI (Frontend)]
+    C -->|Validation/Test Set| H[Model Evaluation]
+    H --> I[Risk Management Backtest]
+    I --> J[Performance Metrics]
+```
 
 ## Usage Guide
 
@@ -46,7 +54,21 @@ Before running the live dashboard, you need to train a model and save it. This w
 python3 src/main.py --save-model models/best_volatility_predictor.pkl
 ```
 
-### 2. Running the Live Volatility Dashboard
+### 2. Configuring Cloud LLM Features (Optional)
+To integrate advanced sentiment features from cloud LLMs (e.g., OpenAI, Anthropic, Google), edit `config.toml`:
+
+```toml
+# config.toml
+[cloud_settings]
+enabled = true
+api_key = "your_api_key_here" # Replace with your actual API key
+# provider = "openai" # Options: openai, anthropic, google
+cache_file = "data/llm_features.csv"
+```
+
+Note: Running `src/main.py` with `cloud_settings.enabled = true` will trigger API calls and cache results. Ensure your API key is configured.
+
+### 3. Running the Live Volatility Dashboard
 Once your model is saved, you can launch the interactive web dashboard:
 
 ```bash
@@ -56,7 +78,7 @@ python3 src/app.py
 
 After running the command, open your web browser and navigate to the address shown in the terminal (e.g., `http://127.0.0.1:5000`).
 
-### 3. Custom Model Integration
+### 4. Custom Model Integration
 You can plug in any scikit-learn compatible model to compare against the defaults. Simply instantiate your model and pass it to the `VolatilityPredictor`:
 
 ```python
@@ -86,6 +108,15 @@ model_path = "models/best_volatility_predictor.pkl"
 # Host and Port for the local Flask server
 host = "127.0.0.1"
 port = 5000
+
+[cloud_settings]
+# Set to true to use cloud sentiment features
+enabled = false
+# Options: openai, anthropic, google
+provider = "openai"
+api_key = "your_api_key_here"
+# Cache file to save API results. Ensure 'data/' directory exists.
+cache_file = "data/llm_features.csv"
 ```
 
 ## Developer Notes
@@ -101,4 +132,4 @@ port = 5000
 4. Push to the branch (`git push origin feature/awesome-feature`).
 5. Open a Pull Request.
 
-Please follow the existing code style (PEP 8) and add tests for new functionality.
+Please follow the existing code style (PEP 8) and add tests for new functionality.

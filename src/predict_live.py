@@ -12,11 +12,6 @@ from models import VolatilityPredictor
 
 def load_config():
     """Loads configuration from config.toml or returns defaults."""
-    if os.path.exists("config.toml"):
-        try:
-            return toml.load("config.toml")
-        except Exception as e:
-            print(f"Error loading config.toml: {e}. Using defaults.")
     loaded_config = {}
     if os.path.exists("config.toml"):
         try:

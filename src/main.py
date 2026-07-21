@@ -12,29 +12,24 @@ from cloud_processor import CloudBatchProcessor
 
 def load_config():
     """Loads configuration from config.toml or returns defaults."""
-    if os.path.exists("config.toml"):
-        try:
-            return toml.load("config.toml")
-        except Exception as e:
-            print(f"Error loading config.toml: {e}. Using defaults.")
     loaded_config = {}
     if os.path.exists("config.toml"):
         try:
             loaded_config = toml.load("config.toml")
         except Exception as e:
             print(f"Error loading config.toml: {e}. Using defaults for missing sections.")
-            
+
     # Merge loaded config with defaults to ensure all keys exist
     default_config = {
         "cloud_settings": {"enabled": False, "cache_file": "data/llm_features.csv", "provider": "openai"},
         "model_settings": {"model_type": "random_forest"},
         "live_settings": {"model_path": "models/best_volatility_predictor.pkl", "host": "127.0.0.1", "port": 5000}
     }
-    
+
     config = {}
     for section, defaults in default_config.items():
         config[section] = {**defaults, **loaded_config.get(section, {})}
-    
+
     return config
 
 def run_pipeline():
@@ -53,7 +48,7 @@ def run_pipeline():
     model_type = args.model
     use_cloud = args.cloud
     save_model_path = args.save_model
-    
+
     print("=" * 70)
     print(f"FINANCIAL MARKET VOLATILITY PREDICTION PIPELINE")
     print(f"Model: {model_type.upper()} | Cloud Features: {use_cloud}")
@@ -119,7 +114,7 @@ def run_pipeline():
         test_results[config_labels[cfg]] = test_metrics
         
         trained_predictors[cfg] = predictor
-        
+    
     # 5. Display Comparison
     print("\n--- PERFORMANCE COMPARISON (TEST SET) ---")
     test_comparison = VolatilityEvaluator.compare_models(test_results)
