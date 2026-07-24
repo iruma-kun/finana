@@ -30,6 +30,7 @@ pip install -r requirements.txt
 ```
 
 ## Architecture
+
 ```mermaid
 flowchart TD
     A[Data Generator] --> B[Preprocessor]
