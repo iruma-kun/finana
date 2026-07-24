@@ -42,6 +42,7 @@ flowchart TD
     C -->|Validation/Test Set| H[Model Evaluation]
     H --> I[Risk Management Backtest]
     I --> J[Performance Metrics]
+```
 
 ## Usage Guide
 
