@@ -31,16 +31,16 @@ pip install -r requirements.txt
 
 ## Architecture
 ```mermaid
+flowchart TD
     A[Data Generator] --> B[Preprocessor]
     B --> C{Temporal Split}
     C -->|Training Set| D[Model Training]
     D --> E[Saved Model & Preprocessor]
     E --> F[Predict Live Server]
-    F --> G[Web UI (Frontend)]
+    F --> G["Web UI (Frontend)"]
     C -->|Validation/Test Set| H[Model Evaluation]
     H --> I[Risk Management Backtest]
     I --> J[Performance Metrics]
-```
 
 ## Usage Guide
 
