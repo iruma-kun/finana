@@ -31,7 +31,6 @@ pip install -r requirements.txt
 
 ## Architecture
 ```mermaid
-graph TD
     A[Data Generator] --> B[Preprocessor]
     B --> C{Temporal Split}
     C -->|Training Set| D[Model Training]
